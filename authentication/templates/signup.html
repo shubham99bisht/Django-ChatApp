@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NotesApp</title>
+    <!-- Include Bootstrap CSS via CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@latest/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <div class="container">
+
+        {% with alertClass=message.tags|default:'warning' %}
+            {% if message.tags == 'success' %}
+                {% with alertClass='success' %} {% endwith %}
+            {% endif %}
+
+            {% for message in messages %}
+            <div class="alert alert-{{ alertClass }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        {% endwith %}
+
+        <div class="card my-5 mx-auto" style="width: 25rem;">
+            <div class="card-body">
+                <h2 class="card-title">Sign Up</h2>
+                <form method="post" action="{% url 'signup' %}">
+                    {% csrf_token %}
+        
+                    <!-- Form fields -->
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" id="username" name="username" class="form-control mb-3">
+
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" id="email" name="email" class="form-control mb-3">                  
+        
+                    <label for="password1" class="form-label">Password</label>
+                    <input type="password" id="password1" name="password1" class="form-control mb-3">
+
+                    <label for="password2" class="form-label">Confirm Password</label>
+                    <input type="password" id="password2" name="password2" class="form-control mb-3">                    
+        
+                    <button type="submit" class="btn btn-primary mb-3">SignUp</button>
+                </form>
+
+                <a href="{% url 'login' %}"  class="ps-2">Back to Login</a>
+            </div>
+        </div>
+    </div>
+
+<!-- Include Bootstrap JavaScript via CDN -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@latest/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

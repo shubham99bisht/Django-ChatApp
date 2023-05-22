@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Welcome, {{ user.username }}!</h1>
+
+    <h3>Chat Rooms available</h3>
+
+    <div class="d-flex flex-column">
+        {% for room in chat_rooms %}
+        <div class="card mb-3">
+            <div class="card-body d-flex justify-content-between">
+            <div>
+                <h5 class="card-title">{{ room.name }}</h5>
+                <p class="card-text">{{ room.description }}</p>
+            </div>
+            <a href="{% url 'room' room.id %}" class="btn btn-primary align-self-end">Enter</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="card mt-5">
+        <div class="card-body">
+          <h5 class="card-title">Create New Room</h5>
+          <form>
+            <div class="form-group">
+              <label for="roomName">Room Name:</label>
+              <input type="text" class="form-control" id="roomName" name="roomName" required>
+            </div>
+            <button type="submit" class="btn btn-primary" onclick="createRoom(event)">Create</button>
+          </form>
+        </div>
+    </div>
+
+    <script>
+        function createRoom(event) {
+          event.preventDefault();
+          var roomName = document.getElementById('roomName').value;
+          window.location.href = '/chat/' + encodeURIComponent(roomName);
+        }
+    </script>
+{% endblock %}
