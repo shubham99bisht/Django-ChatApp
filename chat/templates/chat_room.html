@@ -1,77 +1,5 @@
 {% extends 'base.html' %}
-
-{% block content %}
-  <div class="container">
-    <h1>Chat Room: {{ room_name }}</h1>
-
-    <div id="chatMessages" class="card mb-3" style="overflow-y: scroll;height: 75vh;">
-      <div class="card-body d-flex justify-content-between" style="overflow-y: auto;">
-        <div class="row">
-            <!-- Beginning of chat history -->
-            <div class="col-2"></div>
-            <div class="col-8 text-center"><a class="badge text-secondary-emphasis bg-secondary-subtle gray-900" href="#">Load More</a></div>
-            <div class="col-2"></div>
-            <!-- Beginning of chat messages -->
-            {% for message in chat_messages %}
-              <div class="col-4 d-{% if message.sender == current_user %}block{%else%}none{% endif %}"></div>
-              <div class="col-8">
-                  <div class="message mb-3 {% if message.sender == current_user %}self float-end{% endif %}">
-                      <div class="message-content">
-                      <p>{{ message.content }}</p>
-                      <small>{{ message.timestamp }}</small>
-                      </div>
-                  </div>
-              </div>
-              <div class="col-4 d-{% if message.sender == current_user %}none{%else%}block{% endif %}"></div>
-            {% endfor %}
-        </div>
-      </div>
-      <div class="card-footer">
-        <div class="input-group input-group-sm">
-          <input type="text" class="form-control" id="messageInput" placeholder="Type your message..." />
-          <div class="input-group-append">
-            <button type="button" id="sendButton" class="btn btn-primary">
-              <i class="fa fa-paper-plane fa-fw"></i>
-              <span class="d-none d-sm-inline"> Send</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  {{ request.user.username|json_script:"user_username" }}
-  {{ room_name|json_script:"room-name" }}
-  <script>
-    // Variables passed through template
-    const roomName = JSON.parse(document.getElementById('room-name').textContent);
-    const user_username = JSON.parse(document.getElementById('user_username').textContent);
-    
-    // Connect WebSocket
-    const chatSocket = new WebSocket(`ws://${window.location.host}/ws/chat/${roomName}/`);
-
-    chatSocket.onmessage = function (e) {
-      const data = JSON.parse(e.data);
-      console.log(data)
-    }
-
-
-    const sendButton = document.getElementById('sendButton');
-    const messageInput = document.getElementById('messageInput');
-
-    sendButton.addEventListener('click', (event) => {
-      const message = messageInput.value.trim();
-      if (message !== '') {
-        // Send the message to the server
-        chatSocket.send(JSON.stringify({
-            'message': message,
-            'username': user_username,
-        }));
-        messageInput.value = '';
-      }
-    });
-  </script>
-
+{% block head %}
   <style>
     .message {
       display: flex;
@@ -95,6 +23,89 @@
     .text-left {
         margin-bottom: 20px;
     }
-    
   </style>
+{% endblock %}
+
+{% block content %}
+  <h3>Chat Room: {{ room_name }}</h3>
+
+  <div id="chatMessages" class="card mb-3" style="overflow-y: scroll;height: 75vh;">
+    <div class="card-body" style="overflow-y: auto;">
+      <div class="row" id="chatBox">
+          <!-- Beginning of chat history -->
+          <div class="col-2"></div>
+          <div class="col-8 text-center"><a class="badge text-secondary-emphasis bg-secondary-subtle gray-900">This is beginning of the chat history</a></div>
+          <div class="col-2"></div>
+          <!-- Beginning of chat messages -->
+          {% for message in chat_messages %}
+            <div class="col-4 d-{% if message.sender.username == current_user %}block{%else%}none{% endif %}"></div>
+            <div class="col-8">
+                <div class="message mb-3 {% if message.sender.username == current_user %}self float-end{% endif %}">
+                    <div class="message-content">
+                      <small style="font-size: 13px;">{{ message.sender.username }}</small>
+                      <p class="mb-1">{{ message.message }}</p>
+                      <small style="font-size: 11px;">{{ message.timestamp }}</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4 d-{% if message.sender.username == current_user %}none{%else%}block{% endif %}"></div>
+          {% endfor %}
+      </div>
+    </div>
+    <div class="card-footer">
+      <div class="input-group input-group-sm">
+        <input type="text" class="form-control" id="messageInput" placeholder="Type your message..." />
+        <div class="input-group-append">
+          <button type="button" id="sendButton" class="btn btn-primary">
+            <i class="fa fa-paper-plane fa-fw"></i>
+            <span class="d-none d-sm-inline"> Send</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{ request.user.username|json_script:"user_username" }}
+  {{ room_name|json_script:"room-name" }}
+  <script>
+    // Variables passed through template
+    const roomName = JSON.parse(document.getElementById('room-name').textContent);
+    const user_username = JSON.parse(document.getElementById('user_username').textContent);
+    
+    // Connect WebSocket
+    const chatSocket = new WebSocket(`ws://${window.location.host}/ws/chat/${roomName}/`);
+
+    // Receive new messages from Web Socket
+    chatSocket.onmessage = function (e) {
+      const message = JSON.parse(e.data);
+      console.log(message)
+      document.getElementById("chatBox").innerHTML += `
+        <div class="col-4 d-${message.username == user_username ? 'block' : 'none'}"></div>
+          <div class="col-8">
+              <div class="message mb-3 ${message.username == user_username ? 'self float-end' : ''}">
+                  <div class="message-content">
+                    <small style="font-size: 13px;">${message.username}</small>
+                    <p class="mb-1">${message.message}</p>
+                    <small style="font-size: 11px;">${new Date()}</small>                
+                  </div>
+              </div>
+          </div>
+        <div class="col-4 d-${message.username == user_username ? 'none' : 'block'}"></div>
+      `
+    }
+
+    // Send Message to WebSocket
+    const sendButton = document.getElementById('sendButton');
+    const messageInput = document.getElementById('messageInput');
+    sendButton.addEventListener('click', (event) => {
+      const message = messageInput.value.trim();
+      if (message !== '') {
+        // Send the message to the server
+        chatSocket.send(JSON.stringify({
+            'message': message,
+        }));
+        messageInput.value = '';
+      }
+    });
+  </script>
 {% endblock %}

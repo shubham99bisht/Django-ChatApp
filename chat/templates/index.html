@@ -1,41 +1,54 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>Welcome, {{ user.username }}!</h1>
+    <h3>Welcome, {{ user.username }}!</h3>
 
-    <h3>Chat Rooms available</h3>
+    <h5>Chat Rooms available</h5>
 
     <div class="d-flex flex-column">
+      <div class="border border-20 p-3" style="overflow-y: scroll;height: 45vh;">
+        <!-- <div class="row"></div> -->
         {% for room in chat_rooms %}
-        <div class="card mb-3">
-            <div class="card-body d-flex justify-content-between">
-            <div>
-                <h5 class="card-title">{{ room.name }}</h5>
-                <p class="card-text">{{ room.description }}</p>
+        <div class="card mb-3" >
+          <div class="card-body">
+            <div class="row">
+              <div class="col-9">
+                <h5 class="card-title">{{ room.room_name }}</h5>
+                <p class="card-text">{{ room.last_message.message }}</p>
+                <small>{{ room.last_message.sender }} {{ room.last_message.timestamp }}</small>
+              </div>
+              <div class="col-3 text-center my-auto">
+                <a href="{% url 'room' room.room_name %}" class="btn btn-primary align-middle">Enter Chat</a>
+              </div>
             </div>
-            <a href="{% url 'room' room.id %}" class="btn btn-primary align-self-end">Enter</a>
-            </div>
+          </div>
         </div>
         {% endfor %}
+      </div>        
     </div>
 
     <div class="card mt-5">
-        <div class="card-body">
-          <h5 class="card-title">Create New Room</h5>
-          <form>
-            <div class="form-group">
-              <label for="roomName">Room Name:</label>
-              <input type="text" class="form-control" id="roomName" name="roomName" required>
+        <div class="card-body" style="background-color: #FDF5E6;">
+          <h5 class="card-title mb-3"> New Room</h5>
+          <div class="input-group input-group-sm mb-2">
+            <input type="text" class="form-control" id="roomName" name="roomName" placeholder="Room Name" required/>
+            <div class="input-group-append">
+              <button type="button" class="btn btn-primary" onclick="createRoom(event)">
+                <i class="fa fa-plus-square fa-fw"></i>
+                <span class="d-none d-sm-inline"> Create</span>
+              </button>
             </div>
-            <button type="submit" class="btn btn-primary" onclick="createRoom(event)">Create</button>
-          </form>
+          </div>          
+          <small>* Only AlphaNumeric Room Names are allowed. Spaces and other characters will be removed.</small>
         </div>
     </div>
 
     <script>
         function createRoom(event) {
           event.preventDefault();
-          var roomName = document.getElementById('roomName').value;
+          let words = document.getElementById('roomName').value
+            .replace(/[^a-zA-Z0-9 ]/g, '').split(' ');
+          let roomName = words.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('');
           window.location.href = '/chat/' + encodeURIComponent(roomName);
         }
     </script>
